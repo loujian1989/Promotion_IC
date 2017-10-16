@@ -14,6 +14,7 @@ public class promotion_MSW {
     int[] admire; //list the most preferred player that admire player i
     double max_payoff; //it means the maximum payoff a player could get, it can be changed
     boolean[] flag;  //means whether a player is still available (flag[i]=true) in this stage (it might be matched in IMS stage)
+    double[] x_value;
     double obj_value=0; //here obj_value means the final obj value of the integer program
     double e=0; //here e means the final epsilon value
 
@@ -66,7 +67,7 @@ public class promotion_MSW {
             if(cplex.solve())
             {
                 obj_value= cplex.getObjValue();
-                double[] x_value= cplex.getValues(var[0]);
+                x_value= cplex.getValues(var[0]);
 
                 e= cplex.getValue(epsilon);
                 //System.out.println("epsilon is "+ e);
@@ -168,6 +169,10 @@ public class promotion_MSW {
     double get_epsilon()
     {
         return e;
+    }
+    double[] getX_value()
+    {
+        return x_value;
     }
 
 }

@@ -18,8 +18,9 @@ public class promotion_current {
     boolean[] flag;
     double obj_value=0; //here obj_value means the final obj value of the integer program
     double e=0; //here e means the final epsilon value
+    double epsilon_difference;//decide when to terminate the program
 
-    promotion_current(int N, double[][] utility, boolean[] flag, double alpha)
+    promotion_current(int N, double[][] utility, boolean[] flag, double alpha, double epsilon_difference)
     {
         this.N= N;
         this.alpha= alpha;
@@ -28,7 +29,7 @@ public class promotion_current {
         for(int i=0; i<N; i++)
             for(int j=0; j<N; j++)
                 this.utility[i][j]=utility[i][j];
-
+        this.epsilon_difference=epsilon_difference;
         this.admire= new int[N];
         for(int i=0; i<N; i++)
             this.admire[i]=-1; //default set no one admires the player
@@ -108,7 +109,7 @@ public class promotion_current {
         rng[3]= new IloRange[N*N];
 
         //we would like to maximize the social welfare
-        model.addMaximize(model.sum( model.prod(1-alpha, model.scalProd(x, objvals)), model.prod(alpha, model.negative(epsilon))));
+        model.addMaximize(model.sum( model.prod(1-alpha, model.scalProd(x, objvals)), model.prod(N*alpha, model.negative(epsilon))));
 
         //add constraint: \sum_{j\in N} pi_{ij} \leq 1,  \forall i\in N
         for(int i=0; i<N; i++)
@@ -145,25 +146,40 @@ public class promotion_current {
 
         //Then we check each potential promoted player
 
-        for(int i=0; i<N; i++)
+        double epsilon_current=0;
+        IloCplex cplex= (IloCplex) model;
+        if(cplex.solve())
         {
-            if(flag[i]==false)
-                continue;
-            for(int k=0; k<N; k++)
-            {
-                if(i==k || flag[k]==false)
+            epsilon_current= cplex.getValue(epsilon);
+        }
+
+        while(true) {
+            double epsilon_update=0;
+            for (int i = 0; i < N; i++) {
+                if (flag[i] == false)
                     continue;
-                if(promotion((IloCplex)model, i, k, rng, var, epsilon))
-                {
-                    //add constraint \sum_j pi_{ij} u_i(j) \geq u_i(k)- epsilon
-                    double[] local_obj= new double[N*N];
-                    for(int j=0; j<N; j++) {
-                        if(flag[j]==true)
-                            local_obj[i * N + j] = utility[i][j];
+                for (int k = 0; k < N; k++) {
+                    if (i == k || flag[k] == false || utility[i][k]==max_payoff)
+                        continue;
+                    if (promotion((IloCplex) model, i, k, rng, var, epsilon)) {
+                        //add constraint \sum_j pi_{ij} u_i(j) \geq u_i(k)- epsilon
+                        double[] local_obj = new double[N * N];
+                        for (int j = 0; j < N; j++) {
+                            if (flag[j] == true)
+                                local_obj[i * N + j] = utility[i][j];
+                        }
+                        rng[3][i * N + k] = model.addGe(model.sum(model.scalProd(x, local_obj), epsilon), objvals[i * N + k]);
+                        IloCplex cp= (IloCplex)model;
+                        if(cp.solve())
+                        {
+                            epsilon_update = Math.max(cp.getValue(epsilon), epsilon_update); //the epsilon to update
+                        }
                     }
-                    rng[3][i*N+k]= model.addGe(model.sum(model.scalProd(x, local_obj), epsilon), objvals[i*N+k]);
                 }
             }
+            if(Math.abs(epsilon_update- epsilon_current)<=epsilon_difference)
+                break;
+            epsilon_current=epsilon_update;
         }
 
     }

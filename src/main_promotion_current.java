@@ -12,14 +12,16 @@ public class main_promotion_current {
 
     public static void main(String[] args)throws Exception
     {
-        Scanner cin=new Scanner(new File("SN_Scale_Free_n20m2.txt"));
-        File writename = new File("PICC_alpha_01_SN_Scale_Free_n20m2.txt");
+        Scanner cin=new Scanner(new File("SN_Scale_Free_n10m2.txt"));
+        File writename = new File("PICC_alpha_030_SN_Scale_Free_n10m2.txt");
         writename.createNewFile();
         BufferedWriter out = new BufferedWriter(new FileWriter(writename));
 
         int num_cases=100;
-        int N= 20;
-        double alpha=0.1;
+        int N= 10;
+        double alpha=0.30;
+        double epsilon_difference=0.01; //as we expect the program to converge, we need to terminate it at some time
+                                        //i.e. when the difference of epsilon is less than 0.01
 
         double sw_sum=0;
         double epsilon_sum=0;
@@ -71,7 +73,7 @@ public class main_promotion_current {
                     utility[i][j] = cin.nextInt();
             */
 
-            promotion_current PICC = new promotion_current(N, utility, flag, alpha);
+            promotion_current PICC = new promotion_current(N, utility, flag, alpha, epsilon_difference); //epsilon difference is for checking convergency
             PICC.solve_problem();
             double sw= PICC.get_sw();
             for(int i=0; i< N; i++)
@@ -85,6 +87,9 @@ public class main_promotion_current {
             out.write("The alpha is " + alpha + "\r\n");
             out.write("The social welfare is "+ sw/N + "\r\n");
             out.write("The epsilon is "+ e + "\r\n");
+
+
+
             out.write("\r\n");
             sw_sum+=sw/N;
             epsilon_sum+=e;
