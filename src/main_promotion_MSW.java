@@ -4,7 +4,7 @@
  * Use the maximal social welfare program to check whether a player has chance to be promoted
  */
 
-import sun.awt.image.ImageWatched;
+//import sun.awt.image.ImageWatched;
 
 import java.io.BufferedWriter;
 import java.io.File;

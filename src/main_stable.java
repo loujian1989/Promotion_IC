@@ -6,25 +6,24 @@ import java.util.LinkedList;
 import java.util.Scanner;
 
 /**
- * Created by loujian on 9/3/17.
+ * Created by loujian on 11/2/17.
  */
-public class main_promotion_current {
+public class main_stable {
 
     public static void main(String[] args)throws Exception
     {
-        Scanner cin=new Scanner(new File("SN_Scale_Free_n10m2.txt"));
-        File writename = new File("PICC_alpha_015_SN_Scale_Free_n10m2.txt");
+        Scanner cin=new Scanner(new File("test_in"));
+        File writename = new File("test_out");
         writename.createNewFile();
         BufferedWriter out = new BufferedWriter(new FileWriter(writename));
 
-        int num_cases=100;
-        int N= 10;
-        double alpha=0.15;
-        double epsilon_difference=0.0; //as we expect the program to converge, we need to terminate it at some time
-                                        //i.e. when the difference of epsilon is less than 0.01
+        int num_cases=1;
+        int N= 3;
+        double beta=0.1;
+
 
         double sw_sum=0;
-        double epsilon_sum=0;
+        double gamma_sum=0;
 
         for(int iter=0; iter<num_cases; iter++)
         {
@@ -73,9 +72,9 @@ public class main_promotion_current {
                     utility[i][j] = cin.nextInt();
             */
 
-            promotion_current PICC = new promotion_current(N, utility, flag, alpha, epsilon_difference); //epsilon difference is for checking convergency
-            PICC.solve_problem();
-            double sw= PICC.get_sw();
+            stable ST = new stable(N, utility, flag, beta); //epsilon difference is for checking convergency
+            ST.solve_problem();
+            double sw= ST.get_sw();
             for(int i=0; i< N; i++)
             {
                 if(teammates[i]!=i)
@@ -83,25 +82,23 @@ public class main_promotion_current {
                     sw+= utility[i][teammates[i]];
                 }
             }
-            double e= PICC.get_epsilon();
-            out.write("The alpha is " + alpha + "\r\n");
+            double gamma= ST.get_gamma();
+            out.write("The alpha is " + beta + "\r\n");
             out.write("The social welfare is "+ sw/N + "\r\n");
-            out.write("The epsilon is "+ e + "\r\n");
+            out.write("The gamma is "+ gamma + "\r\n");
 
 
 
             out.write("\r\n");
             sw_sum+=sw/N;
-            epsilon_sum+=e;
+            gamma_sum+=gamma;
         }
 
         out.write("The average social welfare is "+ sw_sum/num_cases + "\r\n");
-        out.write("The average epsilon is "+ epsilon_sum/num_cases + "\r\n");
+        out.write("The average gamma is "+ gamma_sum/num_cases + "\r\n");
         out.flush();
         out.close();
 
     }
-
-
 
 }
